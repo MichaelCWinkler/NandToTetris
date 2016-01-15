@@ -15,5 +15,20 @@ CHIP RAM8 {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+	//The load bit (whether it be a 1 or a 0) is directed to the load input of
+	//whichever register address specifies.
+	DMux8Way(in=load,sel=address,a=R0L,b=R1L,c=R2L,d=R3L,e=R4L,f=R5L,g=R6L,h=R7L);
+	
+	//Eight 16-bit registers
+    Register(in=in,load=R0L,out=R0);
+    Register(in=in,load=R1L,out=R1);
+    Register(in=in,load=R2L,out=R2);
+    Register(in=in,load=R3L,out=R3);
+    Register(in=in,load=R4L,out=R4);
+    Register(in=in,load=R5L,out=R5);
+    Register(in=in,load=R6L,out=R6);
+    Register(in=in,load=R7L,out=R7);
+	
+	//Ensure that the register to which address points outputs its value
+	Mux8Way16(a=R0,b=R1,c=R2,d=R3,e=R4,f=R5,g=R6,h=R7,sel=address,out=out);
 }

@@ -16,5 +16,19 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+	//The register that holds the PC's actual value
+	Register(in=ResOut,load=true,out=out,out=RegOut);
+	
+	//Calculate the PC's previous value + 1
+	Inc16(in=RegOut,out=RegInc);
+	
+	//Determine whether to increment
+	Mux16(a=RegOut,b=RegInc,sel=inc,out=IncOut);
+	
+	//Determine whether to load
+	Mux16(a=IncOut,b=in,sel=load,out=LoadOut);
+
+	//Determine whether to reset
+	Mux16(a=LoadOut,b=false,sel=reset,out=ResOut);
+	
 }
