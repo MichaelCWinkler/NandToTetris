@@ -6,4 +6,33 @@
 // Multiplies R0 and R1 and stores the result in R2.
 // (R0, R1, R2 refer to RAM[0], RAM[1], and RAM[2], respectively.)
 
-// Put your code here.
+	// Initialize the sum and loop counter variables to zero
+	@i
+	M=0
+	@R2
+	M=0
+	
+(LOOP)
+	// Check if R0 has been added to itself R1 times
+	// If so, jump to end
+	@R1
+	D=M
+	@i
+	D=D-M
+	@END
+	D;JEQ
+	
+	// Otherwise, update sum and loop again
+	@R0
+	D=M
+	@R2
+	M=D+M
+	@i
+	M=M+1
+	@LOOP
+	0;JMP
+	
+(END)
+	@END
+	0;JMP
+
