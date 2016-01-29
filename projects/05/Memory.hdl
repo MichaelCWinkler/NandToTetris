@@ -27,5 +27,22 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+	// We use address[13..14] to determine where to send the load bit because
+	// 0 00 0 0000 0000 0000 is where RAM starts 
+	// 0 01 1 1111 1111 1111 is where RAM ends
+	// 0 10 0 0000 0000 0000 is where the screen memory map starts
+	// 0 10 1 1111 1111 1111 is where the screen memory map ends
+	// 0 11 0 0000 0000 0000 is the register that holds the keyboard value
+	// So we can identify which chip we need to send the load bit to by
+	// looking at the second and third bits of the address 
+	// (00 or 01 - RAM, 10 - screen, 11 - keyboard)
+	
+	DMux4Way(in=load, sel=address[13..14], a=RAM1 b=RAM2, c=loadScreen, d=loadKeyboard);
+	Or(a=RAM1, b=RAM2, out=loadRAM)
+	
+	RAM16K(in=in, load=loadRAM, address=address[0..13], out=outRAM);
+	Screen(in=in, load=outScreen, address=[0..12], out=outScreen)
+	Keyboard(out=outKeyboard);
+	
+	Mux4Way16(a=outRAM, b=outRAM, c=outScreen, d=outKeyboard), out=out;
 }
