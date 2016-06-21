@@ -37,12 +37,12 @@ CHIP Memory {
 	// looking at the second and third bits of the address 
 	// (00 or 01 - RAM, 10 - screen, 11 - keyboard)
 	
-	DMux4Way(in=load, sel=address[13..14], a=RAM1 b=RAM2, c=loadScreen, d=loadKeyboard);
-	Or(a=RAM1, b=RAM2, out=loadRAM)
+	DMux4Way(in=load, sel=address[13..14], a=RAM1, b=RAM2, c=loadScreen, d=loadKeyboard);
+	Or(a=RAM1, b=RAM2, out=loadRAM);
 	
 	RAM16K(in=in, load=loadRAM, address=address[0..13], out=outRAM);
-	Screen(in=in, load=outScreen, address=[0..12], out=outScreen)
+	Screen(in=in, load=loadScreen, address=address[0..12], out=outScreen);
 	Keyboard(out=outKeyboard);
 	
-	Mux4Way16(a=outRAM, b=outRAM, c=outScreen, d=outKeyboard), out=out;
+	Mux4Way16(a=outRAM, b=outRAM, c=outScreen, d=outKeyboard, sel=address[13..14], out=out);
 }
