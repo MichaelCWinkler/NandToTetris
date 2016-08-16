@@ -317,7 +317,7 @@
               </expression>
               <symbol> ) </symbol>
             </term>
-            <symbol> &amp; </symbol>
+            <symbol> & </symbol>
             <term>
               <symbol> ( </symbol>
               <expression>
@@ -380,7 +380,7 @@
             </doStatement>
           </statements>
           <symbol> } </symbol>
-        </ifStatement>
+        </if>
         <returnStatement>
           <keyword> return </keyword>
           <symbol> ; </symbol>
@@ -450,7 +450,7 @@
             </doStatement>
           </statements>
           <symbol> } </symbol>
-        </ifStatement>
+        </if>
         <returnStatement>
           <keyword> return </keyword>
           <symbol> ; </symbol>
@@ -632,7 +632,7 @@
             </doStatement>
           </statements>
           <symbol> } </symbol>
-        </ifStatement>
+        </if>
         <returnStatement>
           <keyword> return </keyword>
           <symbol> ; </symbol>
@@ -824,7 +824,7 @@
             </doStatement>
           </statements>
           <symbol> } </symbol>
-        </ifStatement>
+        </if>
         <returnStatement>
           <keyword> return </keyword>
           <symbol> ; </symbol>
@@ -1006,7 +1006,7 @@
             </doStatement>
           </statements>
           <symbol> } </symbol>
-        </ifStatement>
+        </if>
         <returnStatement>
           <keyword> return </keyword>
           <symbol> ; </symbol>
@@ -1198,7 +1198,7 @@
             </doStatement>
           </statements>
           <symbol> } </symbol>
-        </ifStatement>
+        </if>
         <returnStatement>
           <keyword> return </keyword>
           <symbol> ; </symbol>
