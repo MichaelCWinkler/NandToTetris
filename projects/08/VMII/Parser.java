@@ -6,12 +6,21 @@ import java.util.Scanner;
 
 public class Parser {
 
+	public static final int C_ARITHMETIC = 0;
+	public static final int C_PUSH = 1;
+	public static final int C_POP = 2;
+	public static final int C_LABEL = 3;
+	public static final int C_GOTO = 4;
+	public static final int C_IF = 5;
+	public static final int C_FUNCTION = 6;
+	public static final int C_RETURN = 7;
+	public static final int C_CALL = 8;
+	
 	Scanner scanner;
 	String[] currentCommand;
 
 	public Parser(File inputFile) {
 		try {
-			System.out.println("creating new scanner");
 			scanner = new Scanner(inputFile);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -43,35 +52,35 @@ public class Parser {
 
 	}
 
-	protected String commandType() {
+	protected int commandType() {
 		if (currentCommand[0].equals("add") || currentCommand[0].equals("sub") || currentCommand[0].equals("neg")
 				|| currentCommand[0].equals("eq") || currentCommand[0].equals("gt") || currentCommand[0].equals("lt")
 				|| currentCommand[0].equals("lt") || currentCommand[0].equals("and") || currentCommand[0].equals("or")
 				|| currentCommand[0].equals("or") || currentCommand[0].equals("not")) {
-			return "C_ARITHMETIC";
+			return C_ARITHMETIC;
 		} else if (currentCommand[0].equals("push")) {
-			return "C_PUSH";
+			return C_PUSH;
 		} else if (currentCommand[0].equals("pop")) {
-			return "C_POP";
+			return C_POP;
 		} else if (currentCommand[0].equals("label")) {
-			return "C_LABEL";
+			return C_LABEL;
 		} else if (currentCommand[0].equals("goto")) {
-			return "C_GOTO";
+			return C_GOTO;
 		} else if (currentCommand[0].equals("if-goto")) {
-			return "C_IF";
+			return C_IF;
 		} else if (currentCommand[0].equals("function")) {
-			return "C_FUNCTION";
+			return C_FUNCTION;
 		} else if (currentCommand[0].equals("return")) {
-			return "C_RETURN";
+			return C_RETURN;
 		} else if (currentCommand[0].equals("call")) {
-			return "C_CALL";
+			return C_CALL;
 		} else {
 			throw new IllegalArgumentException("invalid command");
 		}
 	}
 
 	protected String arg1() {
-		if (commandType().equals("C_ARITHMETIC") || commandType().equals("C_RETURN")) {
+		if (commandType()== C_ARITHMETIC || commandType() == C_RETURN) {
 			return currentCommand[0].trim();
 		} else {
 			return currentCommand[1].trim();

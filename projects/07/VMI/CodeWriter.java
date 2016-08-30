@@ -6,10 +6,14 @@ import java.util.HashMap;
 
 public class CodeWriter {
 
+	public static final int C_PUSH = 1;
+	public static final int C_POP = 2;
+	
 	private BufferedWriter writer;
 	private String fileName;
 	private HashMap<String, String> segments;
 	private int labelCounter = 0;
+	private String currentFunctionName;
 
 	public CodeWriter(BufferedWriter writer) {
 		this.writer = writer;
@@ -46,6 +50,18 @@ public class CodeWriter {
 		}
 	}
 
+	private void preFunctionCallPush() {
+		try {
+			writer.write("@SP\n");
+			writer.write("A=M\n");
+			writer.write("M=D\n");
+			writer.write("@SP\n");
+			writer.write("AM=M+1\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private void pushConstant(String index) {
 		System.out.println("pushing constant");
 		try {
@@ -122,8 +138,8 @@ public class CodeWriter {
 			e.printStackTrace();
 		}
 	}
-	
-	private void conditional(String condition){
+
+	private void conditional(String condition) {
 		String label1 = generateNextLabel();
 		String label2 = generateNextLabel();
 		try {
@@ -184,10 +200,10 @@ public class CodeWriter {
 		}
 	}
 
-	protected void writePushPop(String command, String segment, String index) {
+	protected void writePushPop(int command, String segment, String index) {
 		System.out.println("Command = " + command);
 		System.out.println("segment = " + segment);
-		if (command.equals("C_PUSH")) {
+		if (command == C_PUSH ) {
 			if (segment.equals("constant")) {
 				System.out.println("pushing constant");
 				pushConstant(index);
@@ -201,7 +217,7 @@ public class CodeWriter {
 				System.out.println("pushing general");
 				pushGeneral(index, segments.get(segment), "M+D");
 			}
-		} else { // command is C_POP
+		} else {
 			if (segment.equals("static")) {
 				popStatic(index);
 			} else if (segment.equals("pointer") || segment.equals("temp")) {
@@ -213,13 +229,188 @@ public class CodeWriter {
 
 	}
 
+	protected void writeInit() {
+		try {
+			writer.write("@256\n");
+			writer.write("D=A\n");
+			writer.write("@SP\n");
+			writer.write("M=D\n");
+			writeCall("Sys.init", "0");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void writeLabel(String label) {
+		try {
+			writer.write("(" + currentFunctionName + "$" + label + ")\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void writeGoto(String label) {
+		try {
+			writer.write("@" + currentFunctionName + "$" + label + "\n");
+			writer.write("0;JMP\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void writeIf(String label) {
+		try {
+			writer.write("@SP\n");
+			writer.write("AM=M-1\n");
+			writer.write("D=M\n");
+			writer.write("@" + currentFunctionName + "$" + label + "\n");
+			writer.write("D;JNE\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void writeCall(String functionName, String numArgs) {
+		String currentFunctionLabel = generateNextLabel();
+		try {
+			//push return address
+			writer.write("@" + currentFunctionLabel + "\n");
+			writer.write("D=A\n");
+			preFunctionCallPush();
+			
+			//push LCL
+			writer.write("@LCL\n");
+			writer.write("D=M\n");
+			preFunctionCallPush();
+			
+			//push ARG
+			writer.write("@ARG\n");
+			writer.write("D=M\n");
+			preFunctionCallPush();
+			
+			//push THIS
+			writer.write("@THIS\n");
+			writer.write("D=M\n");
+			preFunctionCallPush();
+			
+			//push THAT
+			writer.write("@THAT\n");
+			writer.write("D=M\n");
+			preFunctionCallPush();
+			
+			//reposition ARG
+			writer.write("@SP\n");
+			writer.write("D=M\n");
+			writer.write("@" + (Integer.parseInt(numArgs)+5) + "\n");
+			writer.write("D=D-A\n");
+			writer.write("@ARG\n");
+			writer.write("M=D\n");
+			
+			//reposition LCL
+			writer.write("@SP\n");
+			writer.write("D=M\n");
+			writer.write("@LCL\n");
+			writer.write("M=D\n");
+			
+			//transfer control
+			writer.write("@" + functionName + "\n");
+			writer.write("0;JMP\n");
+			
+			//declare label for return address
+			writer.write("(" + currentFunctionLabel + ")\n");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	protected void writeReturn() {
+		try {
+			//FRAME = LCL, store FRAME in R14
+			writer.write("@LCL\n");
+			writer.write("D=M\n");
+			writer.write("@R14\n");
+			writer.write("M=D\n");
+			
+			//RET = (FRAME-5), store RET in R15
+			writer.write("@5\n");
+			writer.write("A=D-A\n");
+			writer.write("D=M\n");
+			writer.write("@R15\n");
+			writer.write("M=D\n");
+			
+			//Reposition the return value for the caller
+			popGeneral("0", "ARG", "M+D");
+			
+			//Restore SP of the caller 
+			writer.write("@ARG\n");
+			writer.write("D=M+1\n");
+			writer.write("@SP\n");
+			writer.write("M=D\n");
+			
+			//Restore THAT of the caller
+			writer.write("@1\n");
+			writer.write("D=A\n");
+			writer.write("@R14\n");
+			writer.write("A=M-D\n");
+			writer.write("D=M\n");
+			writer.write("@THAT\n");
+			writer.write("M=D\n");
+			
+			//Restore THIS of the caller
+			writer.write("@2\n");
+			writer.write("D=A\n");
+			writer.write("@R14\n");
+			writer.write("A=M-D\n");
+			writer.write("D=M\n");
+			writer.write("@THIS\n");
+			writer.write("M=D\n");
+			
+			//Restore ARG of the caller
+			writer.write("@3\n");
+			writer.write("D=A\n");
+			writer.write("@R14\n");
+			writer.write("A=M-D\n");
+			writer.write("D=M\n");
+			writer.write("@ARG\n");
+			writer.write("M=D\n");
+			
+			//Restore LCL of the caller
+			writer.write("@4\n");
+			writer.write("D=A\n");
+			writer.write("@R14\n");
+			writer.write("A=M-D\n");
+			writer.write("D=M\n");
+			writer.write("@LCL\n");
+			writer.write("M=D\n");
+			
+			//goto RET
+			writer.write("@R15\n");
+			writer.write("A=M\n");
+			writer.write("0;JMP\n");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
+	}
+
+	protected void writeFunction(String functionName, String numLocals) {
+		currentFunctionName = functionName;
+		try {
+			writer.write("(" + functionName + ")\n");
+			for (int i = 0; i < Integer.parseInt(numLocals); i++) {
+				writePushPop(C_PUSH, "constant", "0");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	protected void finish() {
 		try {
 			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
-
 }

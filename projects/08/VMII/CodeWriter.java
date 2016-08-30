@@ -6,6 +6,9 @@ import java.util.HashMap;
 
 public class CodeWriter {
 
+	public static final int C_PUSH = 1;
+	public static final int C_POP = 2;
+	
 	private BufferedWriter writer;
 	private String fileName;
 	private HashMap<String, String> segments;
@@ -197,10 +200,10 @@ public class CodeWriter {
 		}
 	}
 
-	protected void writePushPop(String command, String segment, String index) {
+	protected void writePushPop(int command, String segment, String index) {
 		System.out.println("Command = " + command);
 		System.out.println("segment = " + segment);
-		if (command.equals("C_PUSH")) {
+		if (command == C_PUSH ) {
 			if (segment.equals("constant")) {
 				System.out.println("pushing constant");
 				pushConstant(index);
@@ -396,7 +399,7 @@ public class CodeWriter {
 		try {
 			writer.write("(" + functionName + ")\n");
 			for (int i = 0; i < Integer.parseInt(numLocals); i++) {
-				writePushPop("C_PUSH", "constant", "0");
+				writePushPop(C_PUSH, "constant", "0");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
