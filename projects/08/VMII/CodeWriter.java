@@ -2,6 +2,8 @@ package nand2tetrisVMI;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 
 public class CodeWriter {
@@ -12,6 +14,7 @@ public class CodeWriter {
 	private BufferedWriter writer;
 	private String fileName;
 	private HashMap<String, String> segments;
+	private HashMap<String, String[]> arithmeticMethodAndParams;
 	private int labelCounter = 0;
 	private String currentFunctionName;
 
@@ -24,27 +27,40 @@ public class CodeWriter {
 		segments.put("that", "THAT");
 		segments.put("pointer", "R3");
 		segments.put("temp", "R5");
+		
+		arithmeticMethodAndParams = new HashMap<String, String[]>();
+		arithmeticMethodAndParams.put("add", new String[] {"binaryArithmetic", "M=M+D\n"});
+		arithmeticMethodAndParams.put("sub", new String[] {"binaryArithmetic", "M=M-D\n"});
+		arithmeticMethodAndParams.put("neg", new String[] {"unaryArithmetic", "M=-M\n"});
+		arithmeticMethodAndParams.put("eq", new String[] {"conditional", "JEQ"});
+		arithmeticMethodAndParams.put("gt", new String[] {"conditional", "JGT"});
+		arithmeticMethodAndParams.put("lt", new String[] {"conditional", "JLT"});
+		arithmeticMethodAndParams.put("and", new String[] {"binaryArithmetic", "M=M&D\n"});
+		arithmeticMethodAndParams.put("or", new String[] {"binaryArithmetic", "M=M|D\n"});
+		arithmeticMethodAndParams.put("not", new String[] {"unaryArithmetic", "M=!M\n"});
 	}
 
 	protected void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
 
-	private void unaryArithmetic() {
+	private void unaryArithmetic(String modifier) {
 		try {
 			writer.write("@SP\n");
 			writer.write("A=M-1\n");
+			writer.write(modifier);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	private void binaryArithmetic() {
+	private void binaryArithmetic(String modifier) {
 		try {
 			writer.write("@SP\n");
 			writer.write("AM=M-1\n");
 			writer.write("D=M\n");
 			writer.write("A=A-1\n");
+			writer.write(modifier);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -169,33 +185,21 @@ public class CodeWriter {
 	}
 
 	protected void writeArithmetic(String command) {
+		
+		String[] methodAndParam = arithmeticMethodAndParams.get(command);
+		
 		try {
-			if (command.equals("add")) {
-				binaryArithmetic();
-				writer.write("M=M+D\n");
-			} else if (command.equals("sub")) {
-				binaryArithmetic();
-				writer.write("M=M-D\n");
-			} else if (command.equals("neg")) {
-				unaryArithmetic();
-				writer.write("M=-M\n");
-			} else if (command.equals("eq")) {
-				conditional("JEQ");
-			} else if (command.equals("gt")) {
-				conditional("JGT");
-			} else if (command.equals("lt")) {
-				conditional("JLT");
-			} else if (command.equals("and")) {
-				binaryArithmetic();
-				writer.write("M=M&D\n");
-			} else if (command.equals("or")) {
-				binaryArithmetic();
-				writer.write("M=M|D\n");
-			} else if (command.equals("not")) {
-				unaryArithmetic();
-				writer.write("M=!M\n");
-			}
-		} catch (IOException e) {
+			Method arithmeticMethod = this.getClass().getMethod(methodAndParam[0], String.class);
+			arithmeticMethod.invoke(this, methodAndParam[1]);
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
 	}
@@ -205,16 +209,12 @@ public class CodeWriter {
 		System.out.println("segment = " + segment);
 		if (command == C_PUSH ) {
 			if (segment.equals("constant")) {
-				System.out.println("pushing constant");
 				pushConstant(index);
 			} else if (segment.equals("static")) {
-				System.out.println("pushing static");
 				pushStatic(index);
 			} else if (segment.equals("pointer") || segment.equals("temp")) {
-				System.out.println("pushing pointer or temp");
 				pushGeneral(index, segments.get(segment), "A+D");
 			} else {
-				System.out.println("pushing general");
 				pushGeneral(index, segments.get(segment), "M+D");
 			}
 		} else {

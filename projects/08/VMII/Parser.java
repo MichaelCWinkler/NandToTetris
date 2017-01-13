@@ -2,24 +2,36 @@ package nand2tetrisVMI;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Parser {
 
-	public static final int C_ARITHMETIC = 0;
-	public static final int C_PUSH = 1;
-	public static final int C_POP = 2;
-	public static final int C_LABEL = 3;
-	public static final int C_GOTO = 4;
-	public static final int C_IF = 5;
-	public static final int C_FUNCTION = 6;
-	public static final int C_RETURN = 7;
-	public static final int C_CALL = 8;
-	
 	Scanner scanner;
 	String[] currentCommand;
-
+	HashMap<String, Integer> commandTypes;
+	
 	public Parser(File inputFile) {
+		
+		commandTypes = new HashMap<String, Integer>();
+		commandTypes.put("add", 0);
+		commandTypes.put("sub", 0);
+		commandTypes.put("neg", 0);
+		commandTypes.put("eq", 0);
+		commandTypes.put("gt", 0);
+		commandTypes.put("lt", 0);
+		commandTypes.put("and", 0);
+		commandTypes.put("or", 0);
+		commandTypes.put("not", 0);
+		commandTypes.put("push", 1);
+		commandTypes.put("pop", 2);
+		commandTypes.put("label", 3);
+		commandTypes.put("goto", 4);
+		commandTypes.put("if-goto", 5);
+		commandTypes.put("function", 6);
+		commandTypes.put("return", 7);
+		commandTypes.put("call", 8);
+
 		try {
 			scanner = new Scanner(inputFile);
 		} catch (IOException e) {
@@ -53,34 +65,12 @@ public class Parser {
 	}
 
 	protected int commandType() {
-		if (currentCommand[0].equals("add") || currentCommand[0].equals("sub") || currentCommand[0].equals("neg")
-				|| currentCommand[0].equals("eq") || currentCommand[0].equals("gt") || currentCommand[0].equals("lt")
-				|| currentCommand[0].equals("lt") || currentCommand[0].equals("and") || currentCommand[0].equals("or")
-				|| currentCommand[0].equals("or") || currentCommand[0].equals("not")) {
-			return C_ARITHMETIC;
-		} else if (currentCommand[0].equals("push")) {
-			return C_PUSH;
-		} else if (currentCommand[0].equals("pop")) {
-			return C_POP;
-		} else if (currentCommand[0].equals("label")) {
-			return C_LABEL;
-		} else if (currentCommand[0].equals("goto")) {
-			return C_GOTO;
-		} else if (currentCommand[0].equals("if-goto")) {
-			return C_IF;
-		} else if (currentCommand[0].equals("function")) {
-			return C_FUNCTION;
-		} else if (currentCommand[0].equals("return")) {
-			return C_RETURN;
-		} else if (currentCommand[0].equals("call")) {
-			return C_CALL;
-		} else {
-			throw new IllegalArgumentException("invalid command");
-		}
+		return commandTypes.get(currentCommand[0]);
 	}
 
 	protected String arg1() {
-		if (commandType()== C_ARITHMETIC || commandType() == C_RETURN) {
+		//0 and 7 correspond to arithmetic and return command types
+		if (commandType() == 0 || commandType() == 7) {
 			return currentCommand[0].trim();
 		} else {
 			return currentCommand[1].trim();

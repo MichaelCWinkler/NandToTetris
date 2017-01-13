@@ -62,6 +62,7 @@ public class VMtranslator {
 		
 		Parser parser = new Parser(file);
 		
+		//Use map (command type -> function name) + reflection + array of strings to be passed to the code writer function
 		while (parser.hasMoreCommands()) {
 			if (parser.commandType() == C_ARITHMETIC) {
 				theCodeWriter.writeArithmetic((parser.arg1()));
