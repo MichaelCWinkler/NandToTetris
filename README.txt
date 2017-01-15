@@ -28,4 +28,6 @@ Ch 11: Compiler II - Code Generation (Not completed as of 1/14/17)
 
 Ch 12: Operating System (Not completed as of 1/14/17)
 
+Files created and modified by me reside in the projects folder.
+
 http://www.nand2tetris.org/
